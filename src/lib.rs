@@ -80,7 +80,9 @@ pub use self::route::Route;
 pub use self::route::RouteBuilder;
 pub use self::builder::RouterBuilder;
 
-pub type Handler = fn(Request, Response);
+pub trait Handler {
+	fn handle(Request, Response);
+}
 pub type HttpResult<T> = Result<T,StatusCode>;
 
 /// This is the one. The router.
