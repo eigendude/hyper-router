@@ -69,6 +69,7 @@ use hyper::uri::RequestUri::AbsolutePath;
 use hyper::server::{Request, Response};
 use hyper::status::StatusCode;
 use hyper::method::Method;
+use std::rc::Rc;
 
 mod path;
 pub mod route;
@@ -80,7 +81,13 @@ pub use self::route::Route;
 pub use self::route::RouteBuilder;
 pub use self::builder::RouterBuilder;
 
-pub type Handler = fn(Request, Response);
+pub trait Handler {
+    /// Receives a `Request`/`Response` pair, and should perform some action on them.
+    ///
+    /// This could be reading from the request, and writing to the response.
+    fn handle(&self, Request, Response);
+}
+
 pub type HttpResult<T> = Result<T,StatusCode>;
 
 /// This is the one. The router.
@@ -96,18 +103,18 @@ impl Router {
     /// If the request does not match any route than default 404 handler is returned.
     /// If the request match some routes but http method does not match (used GET but routes are
     /// defined for POST) than default method not supported handler is returned.
-    pub fn find_handler_with_defaults(&self, request: &Request) -> Handler {
+    pub fn find_handler_with_defaults(&self, request: &Request) -> Rc<Handler> {
         if let AbsolutePath(request_path) = request.uri.clone() {
             let matching_routes = self.find_matching_routes(&request_path);
             match matching_routes.len() {
-                x if x <= 0 => handlers::default_404_handler,
+                x if x <= 0 => Rc::new(handlers::default_404_handler),
                 _ => {
                     self.find_for_method(&matching_routes, &request.method)
-                        .unwrap_or(handlers::method_not_supported_handler)
+                        .unwrap_or(Rc::new(handlers::method_not_supported_handler{}))
                 }
             }
         } else {
-            handlers::not_implemented_handler
+            Rc::new(handlers::not_implemented_handler{})
         }
     }
 
@@ -116,7 +123,7 @@ impl Router {
     /// It returns handler if it's found or `StatusCode` for error. 
     /// This method may return `NotFound`, `MethodNotAllowed` or `NotImplemented` 
     /// status codes.
-    pub fn find_handler(&self, request: &Request) -> HttpResult<Handler> {
+    pub fn find_handler(&self, request: &Request) -> HttpResult<Rc<Handler>> {
         if let AbsolutePath(request_path) = request.uri.clone() {
             let matching_routes = self.find_matching_routes(&request_path);
             match matching_routes.len() {
@@ -141,10 +148,10 @@ impl Router {
             .collect()
     }
 
-    fn find_for_method(&self, routes: &Vec<&Route>, method: &Method) -> Option<Handler> {
+    fn find_for_method(&self, routes: &Vec<&Route>, method: &Method) -> Option<Rc<Handler>> {
         let method = method.clone();
         routes.iter()
             .find(|route| route.method == method)
-            .map(|route| route.handler)
+            .map(|route| route.handler.clone())
     }
 }

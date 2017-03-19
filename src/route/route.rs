@@ -1,12 +1,14 @@
 use hyper::method::Method;
 use handlers;
 use std::fmt;
+use std::rc::Rc;
 
 use Path;
 use Handler;
 use super::RouteBuilder;
 
 /// Holds route information
+#[derive(Clone)]
 pub struct Route {
     /// HTTP method to match
     pub method: Method,
@@ -25,8 +27,12 @@ pub struct Route {
     ///   res.send(b"Hello World").unwrap();
     /// }
     /// ``` 
-    pub handler: Handler
+    pub handler: Rc<Handler>
 }
+
+// TODO
+unsafe impl Send for Route {}
+unsafe impl Sync for Route {}
 
 impl Route {
     pub fn options(path: &str) -> RouteBuilder {
@@ -79,7 +85,7 @@ impl Default for Route {
         Route {
             method: Method::Get,
             path: Path::new("/"),
-            handler: handlers::not_implemented_handler
+            handler: Rc::new(handlers::not_implemented_handler{}),
         }
     }
 }
