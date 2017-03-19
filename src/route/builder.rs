@@ -5,7 +5,7 @@ pub struct RouteBuilder {
     route: Route
 }
 
-impl RouteBuilder {
+impl<'r> RouteBuilder<'r> {
     pub fn new(route: Route) -> RouteBuilder {
         RouteBuilder {
             route: route
@@ -15,7 +15,7 @@ impl RouteBuilder {
     /// Completes the building process by taking the handler to process the request.
     ///
     /// Returns created route.
-    pub fn using(mut self, handler: Box<Handler>) -> Route {
+    pub fn using(mut self, handler: Box<Handler>) -> Route<'r> {
         self.route.handler = handler;
         self.route
     }

@@ -7,7 +7,7 @@ use Handler;
 use super::RouteBuilder;
 
 /// Holds route information
-pub struct Route {
+pub struct Route<'r> {
     /// HTTP method to match
     pub method: Method,
 
@@ -28,7 +28,7 @@ pub struct Route {
     pub handler: Box<Handler>
 }
 
-impl Route {
+impl<'r> Route<'r> {
     pub fn options(path: &str) -> RouteBuilder {
         Route::from(Method::Options, path)
     }
@@ -74,8 +74,8 @@ impl Route {
     }
 }
 
-impl Default for Route {
-    fn default() -> Route {
+impl<'r> Default for Route<'r> {
+    fn default() -> Route<'r> {
         Route {
             method: Method::Get,
             path: Path::new("/"),
@@ -84,7 +84,7 @@ impl Default for Route {
     }
 }
 
-impl fmt::Debug for Route {
+impl<'r> fmt::Debug for Route<'r> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Route {{method: {:?}, path: {:?}}}", self.method, self.path)
     }

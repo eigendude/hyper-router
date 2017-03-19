@@ -6,12 +6,12 @@ use super::Router;
 /// Example usage:
 ///
 #[derive(Debug)]
-pub struct RouterBuilder {
-    routes: Vec<Route>,
+pub struct RouterBuilder<'r> {
+    routes: Vec<Route<'r>>,
 }
 
-impl RouterBuilder {
-    pub fn new() -> RouterBuilder {
+impl<'r> RouterBuilder<'r> {
+    pub fn new() -> RouterBuilder<'r> {
         RouterBuilder { routes: vec![] }
     }
 
@@ -29,12 +29,12 @@ impl RouterBuilder {
     ///
     /// RouterBuilder::new().add(Route::get(r"/person/\d+").using(some_handler));
     /// ```
-    pub fn add(mut self, route: Route) -> RouterBuilder {
+    pub fn add(mut self, route: Route<'r>) -> RouterBuilder<'r> {
         self.routes.push(route);
         self
     }
 
-    pub fn build(self) -> Router {
+    pub fn build(self) -> Router<'r> {
         Router { routes: self.routes }
     }
 }
