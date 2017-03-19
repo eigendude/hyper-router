@@ -98,7 +98,7 @@ impl Router {
     /// If the request does not match any route than default 404 handler is returned.
     /// If the request match some routes but http method does not match (used GET but routes are
     /// defined for POST) than default method not supported handler is returned.
-    pub fn find_handler_with_defaults(&self, request: &Request) -> Handler {
+    pub fn find_handler_with_defaults(&self, request: &Request) -> Box<Handler> {
         if let AbsolutePath(request_path) = request.uri.clone() {
             let matching_routes = self.find_matching_routes(&request_path);
             match matching_routes.len() {
@@ -118,7 +118,7 @@ impl Router {
     /// It returns handler if it's found or `StatusCode` for error. 
     /// This method may return `NotFound`, `MethodNotAllowed` or `NotImplemented` 
     /// status codes.
-    pub fn find_handler(&self, request: &Request) -> HttpResult<Handler> {
+    pub fn find_handler(&self, request: &Request) -> HttpResult<Box<Handler>> {
         if let AbsolutePath(request_path) = request.uri.clone() {
             let matching_routes = self.find_matching_routes(&request_path);
             match matching_routes.len() {
@@ -143,7 +143,7 @@ impl Router {
             .collect()
     }
 
-    fn find_for_method(&self, routes: &Vec<&Route>, method: &Method) -> Option<Handler> {
+    fn find_for_method(&self, routes: &Vec<&Route>, method: &Method) -> Option<Box<Handler>> {
         let method = method.clone();
         routes.iter()
             .find(|route| route.method == method)

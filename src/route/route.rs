@@ -25,7 +25,7 @@ pub struct Route {
     ///   res.send(b"Hello World").unwrap();
     /// }
     /// ``` 
-    pub handler: Handler
+    pub handler: Box<Handler>
 }
 
 impl Route {
